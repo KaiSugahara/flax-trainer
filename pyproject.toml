@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "flax-trainer"
+version = "1.0.0"
+description = ""
+authors = ["Kai Sugahara <contact@kais.jp>"]
+readme = "README.md"
+license="Apache-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+polars = "^1.5.0"
+tqdm = "^4.66.5"
+jax = "^0.4.31"
+jaxlib = "^0.4.31"
+flax = "^0.8.5"
+optax = "^0.2.3"
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+ruff = "^0.6.2"
+scikit-learn = "^1.5.1"
+
+[tool.ruff]
+line-length = 120
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
