@@ -7,7 +7,24 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+polars = "^1.5.0"
+tqdm = "^4.66.5"
 
+
+[tool.poetry.group.cpu.dependencies]
+jax = "^0.4.31"
+jaxlib = "^0.4.31"
+flax = "^0.8.5"
+optax = "^0.2.3"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+ruff = "^0.6.2"
+scikit-learn = "^1.5.1"
+
+[tool.ruff]
+line-length = 120
 
 [build-system]
 requires = ["poetry-core"]
