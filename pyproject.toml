@@ -4,6 +4,7 @@ version = "1.0.0"
 description = ""
 authors = ["Kai Sugahara <contact@kais.jp>"]
 readme = "README.md"
+license="Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.12"
