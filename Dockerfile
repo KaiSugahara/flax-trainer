@@ -4,12 +4,10 @@ RUN apt -y update
 RUN apt -y install curl git
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/usr/local python3 -
 
-ARG YOUR_UID
-ARG YOUR_GID
-RUN groupadd -f -g ${YOUR_GID} user
-RUN useradd -m -s /bin/bash -N -u ${YOUR_UID} -g ${YOUR_GID} -G sudo user
+RUN groupadd -f -g 1234 user    # dummy UID
+RUN useradd -m -s /bin/bash -N -u 1234 -g 1234 -G sudo user # dummy UID & GID
 USER user
 
-WORKDIR /app
-COPY pyproject.toml /app/pyproject.toml
+WORKDIR /workspace
+COPY pyproject.toml /workspace/pyproject.toml
 RUN poetry install
