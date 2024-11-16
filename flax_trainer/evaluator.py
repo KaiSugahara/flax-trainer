@@ -24,12 +24,12 @@ class RegressionEvaluator(BaseEvaluator):
     """Evaluator for regression task
 
     Attributes:
-        df_DATA (pl.DataFrame): The testing data.
+        dataset_df (pl.DataFrame): The testing data.
     """
 
-    def __init__(self, df_DATA: pl.DataFrame):
-        self.X = jax.device_put(df_DATA[:, :-1].to_numpy())
-        self.y = jax.device_put(df_DATA[:, -1:].to_numpy())
+    def __init__(self, dataset_df: pl.DataFrame):
+        self.X = jax.device_put(dataset_df[:, :-1].to_numpy())
+        self.y = jax.device_put(dataset_df[:, -1:].to_numpy())
 
     def evaluate(self, model: nn.Module) -> tuple[float, dict[str, float]]:
         """Calculates test loss and metrics.
