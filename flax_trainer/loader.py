@@ -1,20 +1,12 @@
 import math
-from dataclasses import dataclass
-from typing import Self, final
+from typing import Self
 
 import jax
 import polars as pl
 from flax import nnx
 
 
-@dataclass
 class BaseLoader:
-    seed: int
-
-    @final
-    def __post_init__(self):
-        self.rngs = nnx.Rngs(self.seed)
-
     def __iter__(self) -> Self:
         """Prepares for batch iteration"""
 
@@ -40,16 +32,22 @@ class BaseLoader:
         raise NotImplementedError
 
 
-@dataclass
 class MiniBatchLoader(BaseLoader):
-    df_DATA: pl.DataFrame
-    batch_size: int
+    def __init__(
+        self,
+        dataset_df: pl.DataFrame,
+        batch_size: int,
+        rngs: nnx.Rngs,
+    ):
+        self.dataset_df = dataset_df
+        self.batch_size = batch_size
+        self.rngs = rngs
 
     def __iter__(self) -> Self:
         """Prepares for batch iteration"""
 
         # Num. of data
-        self.data_size = self.df_DATA.height
+        self.data_size = self.dataset_df.height
 
         # Num. of batch
         self.batch_num = math.ceil(self.data_size / self.batch_size)
@@ -57,8 +55,8 @@ class MiniBatchLoader(BaseLoader):
         # Shuffle rows of data
         self.shuffled_indices = jax.random.permutation(self.rngs(), self.data_size)
         self.X, self.y = (
-            jax.device_put(self.df_DATA[:, :-1].to_numpy())[self.shuffled_indices],
-            jax.device_put(self.df_DATA[:, -1:].to_numpy())[self.shuffled_indices],
+            jax.device_put(self.dataset_df[:, :-1].to_numpy())[self.shuffled_indices],
+            jax.device_put(self.dataset_df[:, -1:].to_numpy())[self.shuffled_indices],
         )
 
         # Initialize batch index
