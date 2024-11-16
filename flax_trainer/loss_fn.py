@@ -1,21 +1,13 @@
-from typing import Callable
-
 import jax
 import jax.numpy as jnp
-from flax import linen as nn
+from flax import nnx
 
 
-def mean_squared_error(
-    model: nn.Module,
-) -> Callable[[nn.FrozenDict, jax.Array, jax.Array], jax.Array]:
-    @jax.jit
-    def inner(params: nn.FrozenDict, X: jax.Array, y: jax.Array):
-        # Prediction
-        pred = model.apply({"params": params}, X)
+def mean_squared_error(model: nnx.Module, X: jax.Array, y: jax.Array) -> jax.Array:
+    # Prediction
+    pred = model(X)  # type: ignore
 
-        # MSE
-        loss = jnp.mean((pred - y) ** 2)
+    # MSE
+    loss = jnp.mean((pred - y) ** 2)
 
-        return loss
-
-    return inner
+    return loss
