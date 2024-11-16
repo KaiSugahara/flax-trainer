@@ -4,37 +4,16 @@ from typing import Self, final
 
 import jax
 import polars as pl
+from flax import nnx
 
 
+@dataclass
 class BaseLoader:
-    __prng_key: jax.Array | None = None
+    seed: int
 
     @final
-    def init(self, prng_key: jax.Array) -> Self:
-        """Replaces the current PRNG key with a new PRNG key for each epoch
-
-        Args:
-            prng_key (jax.Array): new PRNG key
-
-        Note:
-            You are not allowed to override this function in your child classes!
-        """
-        self.__prng_key = prng_key.copy()
-        return self
-
-    @final
-    @property
-    def prng_key(self) -> jax.Array:
-        """Returns the current PRNG key
-
-        Note:
-            You are not allowed to override this function in your child classes!
-        """
-
-        if self.__prng_key is None:
-            raise Exception
-
-        return self.__prng_key
+    def __post_init__(self):
+        self.rngs = nnx.Rngs(self.seed)
 
     def __iter__(self) -> Self:
         """Prepares for batch iteration"""
@@ -76,7 +55,7 @@ class MiniBatchLoader(BaseLoader):
         self.batch_num = math.ceil(self.data_size / self.batch_size)
 
         # Shuffle rows of data
-        self.shuffled_indices = jax.random.permutation(self.prng_key, self.data_size)
+        self.shuffled_indices = jax.random.permutation(self.rngs(), self.data_size)
         self.X, self.y = (
             jax.device_put(self.df_DATA[:, :-1].to_numpy())[self.shuffled_indices],
             jax.device_put(self.df_DATA[:, -1:].to_numpy())[self.shuffled_indices],

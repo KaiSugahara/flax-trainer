@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flax-trainer"
-version = "1.0.0"
+version = "1.1.0"
 description = ""
 authors = ["Kai Sugahara <contact@kais.jp>"]
 readme = "README.md"
@@ -10,10 +10,10 @@ license="Apache-2.0"
 python = "^3.12"
 polars = "^1.5.0"
 tqdm = "^4.66.5"
-jax = "^0.4.31"
-jaxlib = "^0.4.31"
-flax = "^0.8.5"
-optax = "^0.2.3"
+jax = "^0.4.35"
+jaxlib = "^0.4.35"
+flax = "^0.10.1"
+optax = "^0.2.4"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"

@@ -1,8 +1,16 @@
 {
     "name": "flax-trainer-dev",
-    "dockerComposeFile": "../docker-compose.yml",
-    "service": "dev",
-    "workspaceFolder": "/app",
+    "build": {
+        "dockerfile": "./Dockerfile",
+        "context": ".."
+    },
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    "mounts": [
+        "source=${localEnv:HOME}/.ssh,target=/home/user/.ssh,type=bind,consistency=cached"
+    ],
+    "remoteUser": "user",
+    "updateRemoteUserUID": true,
     "customizations": {
         "vscode": {
             "extensions": [
@@ -14,7 +22,7 @@
                 "python.analysis.typeCheckingMode": "basic",
                 "python.analysis.autoImportCompletions": true,
                 "python.analysis.extraPaths": [
-                    "/app"
+                    "/workspace"
                 ],
                 "notebook.formatOnSave.enabled": true,
                 "notebook.codeActionsOnSave": {
