@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flax-trainer"
-version = "1.1.1"
+version = "1.1.2"
 description = ""
 authors = ["Kai Sugahara <contact@kais.jp>"]
 readme = "README.md"
