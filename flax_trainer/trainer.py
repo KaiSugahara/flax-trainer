@@ -92,11 +92,14 @@ class Trainer:
             Args:
                 epoch_i (int): The current epoch index.
             """
-            if self.test_evaluator is not None:
-                test_loss, test_metrics = self.test_evaluator.evaluate(self.model)
-                print(f"[TEST  {str(epoch_i).zfill(3)}]", f"loss={test_loss}")
-                self.logger.log_test_loss(test_loss, epoch_i)
-                self.logger.log_test_metrics(test_metrics, epoch_i)
+            if self.test_evaluator is None:
+                return None
+
+            # Calculate and log test loss/scores
+            test_loss, test_metrics = self.test_evaluator.evaluate(self.model)
+            print(f"[TEST  {str(epoch_i).zfill(3)}]", f"loss={test_loss}")
+            self.logger.log_test_loss(test_loss, epoch_i)
+            self.logger.log_test_metrics(test_metrics, epoch_i)
 
         # Initialize logger
         self.logger = Logger()
@@ -119,8 +122,8 @@ class Trainer:
             # Check early stopping
             if (
                 (self.test_evaluator is not None)
-                and self.early_stopping_patience > 0
-                and self.logger.early_stopping(self.early_stopping_patience, epoch_i)
+                and (self.early_stopping_patience > 0)
+                and (epoch_i - self.logger.best_epoch_i) >= self.early_stopping_patience
             ):
                 break
 
