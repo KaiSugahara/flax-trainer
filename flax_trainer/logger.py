@@ -33,6 +33,10 @@ class Logger:
 
         self.test_metrics.setdefault(epoch_i, {})["loss"] = value
 
+        # Update best epoch
+        if self.test_metrics[self.best_epoch_i]["loss"] >= value:
+            self._best_epoch_i = epoch_i
+
     def log_test_metrics(self, metrics: dict[str, float], epoch_i: int):
         """Logs the testing metrics for the epoch.
 
@@ -44,26 +48,6 @@ class Logger:
         for key, value in metrics.items():
             self.test_metrics.setdefault(epoch_i, {})[key] = value
 
-    def early_stopping(self, early_stopping_patience: int, epoch_i: int) -> bool:
-        """Checks if the conditions for EARLY STOPPING are met.
-
-        Args:
-            early_stopping_patience (int): Number of epochs with no improvement after which training will be stopped.
-            epoch_i (int): The current epoch index.
-
-        Returns:
-            _type_: Whether the conditions for EARLY STOPPING have been met
-        """
-
-        best_epoch_i: int = getattr(self, "_best_epoch_i", 0)
-        best_test_loss: float = getattr(self, "_best_test_loss", self.test_metrics[0]["loss"])
-        current_test_loss = self.test_metrics[epoch_i]["loss"]
-
-        if best_test_loss >= current_test_loss:
-            self._best_epoch_i = epoch_i
-            self._best_test_loss = current_test_loss
-
-        else:
-            return (epoch_i - best_epoch_i) >= early_stopping_patience
-
-        return False
+    @property
+    def best_epoch_i(self) -> int:
+        return getattr(self, "_best_epoch_i", 0)
