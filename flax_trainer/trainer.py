@@ -101,11 +101,18 @@ class Trainer:
             self.logger.log_test_loss(test_loss, epoch_i)
             self.logger.log_test_metrics(test_metrics, epoch_i)
 
+            # Update best parameters if test loss is best
+            if epoch_i == self.logger.best_epoch_i:
+                _, self.__best_state = nnx.split(self.model)
+
         # Initialize logger
         self.logger = Logger()
 
         # Initialize optimizer
         self.opt_state = nnx.Optimizer(model=self.model, tx=self.optimizer)
+
+        # Initialize best state
+        self.__best_state: nnx.graph.GraphState | None = None
 
         # Test
         test(epoch_i=0)
@@ -128,3 +135,18 @@ class Trainer:
                 break
 
         return self
+
+    @property
+    def best_model(self) -> nnx.Module | None:
+        best_state = getattr(self, "_Trainer__best_state", None)
+        if best_state is None:
+            return None
+        graphdef, _ = nnx.split(self.model)
+        return nnx.merge(graphdef, best_state)
+
+    @property
+    def best_state_dict(self) -> nnx.Module | None:
+        best_state = getattr(self, "_Trainer__best_state", None)
+        if best_state is None:
+            return None
+        return best_state.to_pure_dict()
