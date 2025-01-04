@@ -29,7 +29,7 @@ class Trainer:
     model: nnx.Module
     optimizer: optax.GradientTransformation
     train_loader: BaseLoader
-    loss_fn: Callable[[nnx.Module, tuple[jax.Array, ...], jax.Array], jax.Array]
+    loss_fn: Callable[[nnx.Module, jax.Array, jax.Array], jax.Array]
     test_evaluator: BaseEvaluator | None = None
     early_stopping_patience: int = 0
     epoch_num: int = 16
@@ -41,7 +41,7 @@ class Trainer:
         def step_batch(
             model: nnx.Module,
             opt_state: nnx.Optimizer,
-            Xs: tuple[jax.Array, ...],
+            X: jax.Array,
             y: jax.Array,
         ) -> jax.Array:
             """Updates model parameters on the training batch
@@ -49,14 +49,14 @@ class Trainer:
             Args:
                 model (nnx.Module): The Flax model you are training.
                 opt_state (nnx.OptState): The current state of optimizer.
-                Xs (tuple[jax.Array, ...]): The training input data(s).
+                X (jax.Array): The training input data.
                 y (jax.Array): The target data.
 
             Returns:
                 jax.Array: The value of the loss on the batch.
             """
 
-            batch_loss, grads = nnx.value_and_grad(self.loss_fn)(model, Xs, y)
+            batch_loss, grads = nnx.value_and_grad(self.loss_fn)(model, X, y)
             opt_state.update(grads)
 
             return batch_loss
@@ -76,8 +76,8 @@ class Trainer:
             # Train for every batch defined by loader
             pbar = tqdm(iter(self.train_loader))
             pbar.set_description(f"[TRAIN {str(epoch_i).zfill(3)}]")
-            for Xs, y in pbar:
-                batch_loss = step_batch(self.model, self.opt_state, Xs, y)
+            for X, y in pbar:
+                batch_loss = step_batch(self.model, self.opt_state, X, y)
                 batch_loss_buff.append(batch_loss)
                 pbar.set_postfix({"batch_loss": batch_loss})
 

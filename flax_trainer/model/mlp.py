@@ -20,8 +20,7 @@ class RegressionMLP(nnx.Module):
             nnx.Linear(in_features=dims[i], out_features=dims[i + 1], rngs=rngs) for i in range(len(dims) - 1)
         ]
 
-    def __call__(self, *Xs: jax.Array) -> jax.Array:
-        X = Xs[0]
+    def __call__(self, X: jax.Array) -> jax.Array:
         for linear in self.linears[:-1]:
             X = linear(X)
             X = nnx.relu(X)
