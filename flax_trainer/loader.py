@@ -21,7 +21,7 @@ class BaseLoader:
 
         raise NotImplementedError
 
-    def __next__(self) -> tuple[jax.Array, jax.Array]:
+    def __next__(self) -> tuple[tuple[jax.Array, ...], jax.Array]:
         """Returns data from the current batch
 
         Returns:
@@ -73,7 +73,7 @@ class MiniBatchLoader(BaseLoader):
 
         return self.batch_num
 
-    def __next__(self) -> tuple[jax.Array, jax.Array]:
+    def __next__(self) -> tuple[tuple[jax.Array, ...], jax.Array]:
         """Returns data from the current batch
 
         Returns:
@@ -96,4 +96,4 @@ class MiniBatchLoader(BaseLoader):
             # Update batch index
             self.batch_index += 1
 
-            return X, y
+            return (X,), y
