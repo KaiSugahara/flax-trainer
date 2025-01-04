@@ -28,7 +28,7 @@ class RegressionEvaluator(BaseEvaluator):
     """
 
     def __init__(self, dataset_df: pl.DataFrame):
-        self.X = jax.device_put(dataset_df[:, :-1].to_numpy())
+        self.Xs = (jax.device_put(dataset_df[:, :-1].to_numpy()),)
         self.y = jax.device_put(dataset_df[:, -1:].to_numpy())
 
     def evaluate(self, model: nn.Module) -> tuple[float, dict[str, float]]:
@@ -42,9 +42,9 @@ class RegressionEvaluator(BaseEvaluator):
             dict[str, float]: The test metrics.
         """
 
-        def calc_mse(X: jax.Array, y: jax.Array) -> jax.Array:
+        def calc_mse(Xs: tuple[jax.Array, ...], y: jax.Array) -> jax.Array:
             # Prediction
-            pred = model(X)
+            pred = model(*Xs)
 
             # MSE
             loss = jnp.mean((pred - y) ** 2)
@@ -52,6 +52,6 @@ class RegressionEvaluator(BaseEvaluator):
             return loss
 
         # MSE
-        mse = float(calc_mse(self.X, self.y))
+        mse = float(calc_mse(self.Xs, self.y))
 
         return mse, {"mse": mse}
