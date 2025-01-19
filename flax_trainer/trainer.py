@@ -101,10 +101,10 @@ class Trainer(Generic[Model]):
                 return None
 
             # Calculate and log test loss/scores
-            test_loss, test_metrics = self.test_evaluator.evaluate(self.model)
-            print(f"[TEST  {str(epoch_i).zfill(3)}]", f"loss={test_loss}")
-            self.logger.log_test_loss(test_loss, epoch_i)
-            self.logger.log_test_metrics(test_metrics, epoch_i)
+            loss, metrics = self.test_evaluator.evaluate(self.model)
+            print(f"[TEST  {str(epoch_i).zfill(3)}]:", f"{loss=}, {metrics=}")
+            self.logger.log_test_loss(loss, epoch_i)
+            self.logger.log_test_metrics(metrics, epoch_i)
 
             # Update best parameters if test loss is best
             if epoch_i == self.logger.best_epoch_i:
