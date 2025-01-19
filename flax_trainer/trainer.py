@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Self
+from typing import Callable, Generic, Self, TypeVar
 
 import jax
 import jax.numpy as jnp
@@ -11,25 +11,30 @@ from .evaluator import BaseEvaluator
 from .loader import BaseLoader
 from .logger import Logger
 
+Model = TypeVar("Model", bound=nnx.Module)
+
+
+class NotFittedError(Exception): ...
+
 
 @dataclass
-class Trainer:
+class Trainer(Generic[Model]):
     """Trainer for Flax model
 
     Attributes:
-        model (nnx.Module): The Flax model you are training.
+        model (Model): The Flax model you are training.
         optimizer (optax.GradientTransformation): The optax optimizer.
         train_loader (BaseLoader): The data loader used in training
-        loss_fn (Callable[[nnx.Module, jax.Array, jax.Array], jax.Array]): Loss function evaluated in training
+        loss_fn (Callable[[Model, jax.Array, jax.Array], jax.Array]): Loss function evaluated in training
         test_evaluator (BaseEvaluator): (Optional) The evaluator for testing. Defaults to None.
         early_stopping_patience (int): (Optional) Number of epochs with no improvement after which training will be stopped. Defaults to 0.
         epoch_num (int): (Optional) Number of training iterations. Defaults to 16.
     """
 
-    model: nnx.Module
+    model: Model
     optimizer: optax.GradientTransformation
     train_loader: BaseLoader
-    loss_fn: Callable[[nnx.Module, tuple[jax.Array, ...], jax.Array], jax.Array]
+    loss_fn: Callable[[Model, tuple[jax.Array, ...], jax.Array], jax.Array]
     test_evaluator: BaseEvaluator | None = None
     early_stopping_patience: int = 0
     epoch_num: int = 16
@@ -39,7 +44,7 @@ class Trainer:
 
         @nnx.jit
         def step_batch(
-            model: nnx.Module,
+            model: Model,
             opt_state: nnx.Optimizer,
             Xs: tuple[jax.Array, ...],
             y: jax.Array,
@@ -47,7 +52,7 @@ class Trainer:
             """Updates model parameters on the training batch
 
             Args:
-                model (nnx.Module): The Flax model you are training.
+                model (Model): The Flax model you are training.
                 opt_state (nnx.OptState): The current state of optimizer.
                 Xs (tuple[jax.Array, ...]): The training input data(s).
                 y (jax.Array): The target data.
@@ -96,10 +101,10 @@ class Trainer:
                 return None
 
             # Calculate and log test loss/scores
-            test_loss, test_metrics = self.test_evaluator.evaluate(self.model)
-            print(f"[TEST  {str(epoch_i).zfill(3)}]", f"loss={test_loss}")
-            self.logger.log_test_loss(test_loss, epoch_i)
-            self.logger.log_test_metrics(test_metrics, epoch_i)
+            loss, metrics = self.test_evaluator.evaluate(self.model)
+            print(f"[TEST  {str(epoch_i).zfill(3)}]:", f"{loss=}, {metrics=}")
+            self.logger.log_test_loss(loss, epoch_i)
+            self.logger.log_test_metrics(metrics, epoch_i)
 
             # Update best parameters if test loss is best
             if epoch_i == self.logger.best_epoch_i:
@@ -137,16 +142,16 @@ class Trainer:
         return self
 
     @property
-    def best_model(self) -> nnx.Module | None:
+    def best_model(self) -> Model:
         best_state = getattr(self, "_Trainer__best_state", None)
         if best_state is None:
-            return None
+            raise NotFittedError()
         graphdef, _ = nnx.split(self.model)
         return nnx.merge(graphdef, best_state)
 
     @property
-    def best_state_dict(self) -> nnx.Module | None:
+    def best_state_dict(self) -> dict:
         best_state = getattr(self, "_Trainer__best_state", None)
         if best_state is None:
-            return None
+            raise NotFittedError()
         return best_state.to_pure_dict()
