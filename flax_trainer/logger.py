@@ -26,37 +26,37 @@ class Logger:
         if isinstance(self.active_run, ActiveRun):
             mlflow.log_metric("train_loss", value, step=epoch_i)
 
-    def log_test_loss(self, value: float, epoch_i: int):
-        """Logs the testing loss for the epoch.
+    def log_valid_loss(self, value: float, epoch_i: int):
+        """Logs the valid loss for the epoch.
 
         Args:
-            value (float): The value of the testing loss
+            value (float): The value of the valid loss
             epoch_i (int): The current epoch index.
         """
 
         if isinstance(self.active_run, ActiveRun):
-            mlflow.log_metric("test_loss", value, step=epoch_i)
+            mlflow.log_metric("valid_loss", value, step=epoch_i)
 
         # Update best epoch
-        if self.best_test_loss >= value:
+        if self.best_valid_loss >= value:
             self._best_epoch_i = epoch_i
-            self._best_test_loss = value
+            self._best_valid_loss = value
 
-    def log_test_metrics(self, metrics: dict[str, float], epoch_i: int):
-        """Logs the testing metrics for the epoch.
+    def log_valid_metrics(self, metrics: dict[str, float], epoch_i: int):
+        """Logs the valid metrics for the epoch.
 
         Args:
-            metrics (dict[str, float]): The testing scores by metrics.
+            metrics (dict[str, float]): The valid scores by metrics.
             epoch_i (int): The current epoch index.
         """
 
         for key, value in metrics.items():
-            mlflow.log_metric(f"test_{key}", value, step=epoch_i)
+            mlflow.log_metric(f"valid_{key}", value, step=epoch_i)
 
     @property
     def best_epoch_i(self) -> int:
         return getattr(self, "_best_epoch_i", 0)
 
     @property
-    def best_test_loss(self) -> float:
-        return getattr(self, "_best_test_loss", np.inf)
+    def best_valid_loss(self) -> float:
+        return getattr(self, "_best_valid_loss", np.inf)

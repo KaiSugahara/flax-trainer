@@ -27,7 +27,7 @@ class Trainer(Generic[Model]):
         optimizer (optax.GradientTransformation): The optax optimizer.
         train_loader (BaseLoader): The data loader used in training
         loss_fn (Callable[[Model, jax.Array, jax.Array], jax.Array]): Loss function evaluated in training
-        test_evaluator (BaseEvaluator): (Optional) The evaluator for testing. Defaults to None.
+        valid_evaluator (BaseEvaluator): (Optional) The evaluator for validation. Defaults to None.
         early_stopping_patience (int): (Optional) Number of epochs with no improvement after which training will be stopped. Defaults to 0.
         epoch_num (int): (Optional) Number of training iterations. Defaults to 16.
         active_run (ActiveRun): (Optional) MLFlow's run state.
@@ -37,7 +37,7 @@ class Trainer(Generic[Model]):
     optimizer: optax.GradientTransformation
     train_loader: BaseLoader
     loss_fn: Callable[[Model, tuple[jax.Array, ...], jax.Array], jax.Array]
-    test_evaluator: BaseEvaluator | None = None
+    valid_evaluator: BaseEvaluator | None = None
     early_stopping_patience: int = 0
     epoch_num: int = 16
     active_run: ActiveRun | None = None
@@ -94,22 +94,22 @@ class Trainer(Generic[Model]):
 
             return epoch_loss
 
-        def test(epoch_i: int) -> None:
-            """Calculates and logs test loss/scores
+        def valid(epoch_i: int) -> None:
+            """Calculates and logs valid loss/scores
 
             Args:
                 epoch_i (int): The current epoch index.
             """
-            if self.test_evaluator is None:
+            if self.valid_evaluator is None:
                 return None
 
-            # Calculate and log test loss/scores
-            loss, metrics = self.test_evaluator.evaluate(self.model)
-            print(f"[TEST  {str(epoch_i).zfill(3)}]:", f"{loss=}, {metrics=}")
-            self.logger.log_test_loss(loss, epoch_i)
-            self.logger.log_test_metrics(metrics, epoch_i)
+            # Calculate and log valid loss/scores
+            loss, metrics = self.valid_evaluator.evaluate(self.model)
+            print(f"[VALID {str(epoch_i).zfill(3)}]:", f"{loss=}, {metrics=}")
+            self.logger.log_valid_loss(loss, epoch_i)
+            self.logger.log_valid_metrics(metrics, epoch_i)
 
-            # Update best parameters if test loss is best
+            # Update best parameters if valid loss is best
             if epoch_i == self.logger.best_epoch_i:
                 _, self.__best_state = nnx.split(self.model)
 
@@ -122,8 +122,8 @@ class Trainer(Generic[Model]):
         # Initialize best state
         self.__best_state: nnx.graph.GraphState | None = None
 
-        # Test
-        test(epoch_i=0)
+        # Validation
+        valid(epoch_i=0)
 
         # Iterate training {epoch_num} times
         for epoch_i in range(1, self.epoch_num + 1):
@@ -131,12 +131,12 @@ class Trainer(Generic[Model]):
             epoch_loss = step_epoch(epoch_i)
             self.logger.log_train_loss(epoch_loss, epoch_i)
 
-            # Test
-            test(epoch_i)
+            # Validation
+            valid(epoch_i)
 
             # Check early stopping
             if (
-                (self.test_evaluator is not None)
+                (self.valid_evaluator is not None)
                 and (self.early_stopping_patience > 0)
                 and (epoch_i - self.logger.best_epoch_i) >= self.early_stopping_patience
             ):
