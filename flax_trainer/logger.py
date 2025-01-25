@@ -1,3 +1,6 @@
+import os
+import pickle
+import tempfile
 from dataclasses import dataclass
 
 import mlflow
@@ -52,6 +55,19 @@ class Logger:
 
         for key, value in metrics.items():
             mlflow.log_metric(f"valid_{key}", value, step=epoch_i)
+
+    def log_best_state_dict(self, best_state_dict: dict) -> None:
+        """Logs the best model state dict
+
+        Args:
+            best_state_dict (dict): The best state dict
+        """
+
+        with tempfile.TemporaryDirectory() as temp_dir_path:
+            temp_file_path = os.path.join(temp_dir_path, "best_state_dict.pickle")
+            with open(temp_file_path, "wb") as f:
+                pickle.dump(best_state_dict, f)
+            mlflow.log_artifact(temp_file_path)
 
     @property
     def best_epoch_i(self) -> int:

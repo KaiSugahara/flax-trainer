@@ -145,6 +145,9 @@ class Trainer(Generic[Model]):
             if valid_and_check_early_stopping(epoch_i):
                 break
 
+        # Save best model's state
+        self.logger.log_best_state_dict(self.best_state_dict)
+
         return self
 
     @property
@@ -160,4 +163,4 @@ class Trainer(Generic[Model]):
         best_state = getattr(self, "_Trainer__best_state", None)
         if best_state is None:
             raise NotFittedError()
-        return best_state.to_pure_dict()
+        return jax.device_get(best_state.to_pure_dict())
