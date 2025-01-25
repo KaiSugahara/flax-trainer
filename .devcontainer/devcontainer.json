@@ -9,7 +9,7 @@
     "mounts": [
         "source=${localEnv:HOME}/.ssh,target=/home/user/.ssh,type=bind,consistency=cached"
     ],
-    "remoteUser": "user",
+    "postStartCommand": "mlflow server --host 127.0.0.1 --port 8080",
     "updateRemoteUserUID": true,
     "customizations": {
         "vscode": {
@@ -36,7 +36,8 @@
                         "source.organizeImports": "explicit"
                     },
                     "editor.defaultFormatter": "charliermarsh.ruff"
-                }
+                },
+                "files.insertFinalNewline": true
             }
         }
     }
