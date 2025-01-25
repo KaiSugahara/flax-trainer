@@ -6,9 +6,6 @@
     },
     "workspaceFolder": "/workspace",
     "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-    "mounts": [
-        "source=${localEnv:HOME}/.ssh,target=/home/user/.ssh,type=bind,consistency=cached"
-    ],
     "postStartCommand": "mlflow server --host 127.0.0.1 --port 8080",
     "updateRemoteUserUID": true,
     "customizations": {
