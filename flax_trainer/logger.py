@@ -44,6 +44,7 @@ class Logger:
         if self.best_valid_loss >= value:
             self._best_epoch_i = epoch_i
             self._best_valid_loss = value
+            mlflow.log_metric("best_valid_loss", value, step=epoch_i)
 
     def log_valid_metrics(self, metrics: dict[str, float], epoch_i: int):
         """Logs the valid metrics for the epoch.
