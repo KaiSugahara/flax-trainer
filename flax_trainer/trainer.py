@@ -5,6 +5,7 @@ import jax
 import jax.numpy as jnp
 import optax
 from flax import nnx
+from mlflow import ActiveRun
 from tqdm import tqdm
 
 from .evaluator import BaseEvaluator
@@ -29,6 +30,7 @@ class Trainer(Generic[Model]):
         test_evaluator (BaseEvaluator): (Optional) The evaluator for testing. Defaults to None.
         early_stopping_patience (int): (Optional) Number of epochs with no improvement after which training will be stopped. Defaults to 0.
         epoch_num (int): (Optional) Number of training iterations. Defaults to 16.
+        active_run (ActiveRun): (Optional) MLFlow's run state.
     """
 
     model: Model
@@ -38,6 +40,7 @@ class Trainer(Generic[Model]):
     test_evaluator: BaseEvaluator | None = None
     early_stopping_patience: int = 0
     epoch_num: int = 16
+    active_run: ActiveRun | None = None
 
     def fit(self) -> Self:
         """Trains the model on training data"""
@@ -111,7 +114,7 @@ class Trainer(Generic[Model]):
                 _, self.__best_state = nnx.split(self.model)
 
         # Initialize logger
-        self.logger = Logger()
+        self.logger = Logger(active_run=self.active_run)
 
         # Initialize optimizer
         self.opt_state = nnx.Optimizer(model=self.model, tx=self.optimizer)
