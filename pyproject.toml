@@ -14,12 +14,12 @@ jax = "^0.4.35"
 jaxlib = "^0.4.35"
 flax = "^0.10.1"
 optax = "^0.2.4"
+mlflow = "^2.20.0"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
 ruff = "^0.6.2"
 scikit-learn = "^1.5.1"
-mlflow = "^2.20.0"
 
 [tool.ruff]
 line-length = 120
