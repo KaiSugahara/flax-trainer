@@ -44,6 +44,7 @@ class Logger:
         if self.best_valid_loss >= value:
             self._best_epoch_i = epoch_i
             self._best_valid_loss = value
+            mlflow.log_metric("best_valid_loss", value, step=epoch_i)
 
     def log_valid_metrics(self, metrics: dict[str, float], epoch_i: int):
         """Logs the valid metrics for the epoch.
@@ -53,8 +54,9 @@ class Logger:
             epoch_i (int): The current epoch index.
         """
 
-        for key, value in metrics.items():
-            mlflow.log_metric(f"valid_{key}", value, step=epoch_i)
+        if isinstance(self.active_run, ActiveRun):
+            for key, value in metrics.items():
+                mlflow.log_metric(f"valid_{key}", value, step=epoch_i)
 
     def log_best_state_dict(self, best_state_dict: dict) -> None:
         """Logs the best model state dict
@@ -63,11 +65,12 @@ class Logger:
             best_state_dict (dict): The best state dict
         """
 
-        with tempfile.TemporaryDirectory() as temp_dir_path:
-            temp_file_path = os.path.join(temp_dir_path, "best_state_dict.pickle")
-            with open(temp_file_path, "wb") as f:
-                pickle.dump(best_state_dict, f)
-            mlflow.log_artifact(temp_file_path)
+        if isinstance(self.active_run, ActiveRun):
+            with tempfile.TemporaryDirectory() as temp_dir_path:
+                temp_file_path = os.path.join(temp_dir_path, "best_state_dict.pickle")
+                with open(temp_file_path, "wb") as f:
+                    pickle.dump(best_state_dict, f)
+                mlflow.log_artifact(temp_file_path)
 
     @property
     def best_epoch_i(self) -> int:
