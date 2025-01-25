@@ -94,14 +94,17 @@ class Trainer(Generic[Model]):
 
             return epoch_loss
 
-        def valid(epoch_i: int) -> None:
-            """Calculates and logs valid loss/scores
+        def valid_and_check_early_stopping(epoch_i: int) -> bool:
+            """Logs valid loss/scores and check early stopping
 
             Args:
                 epoch_i (int): The current epoch index.
+
+            Returns:
+                bool: Flag indicating whether or not early stop
             """
             if self.valid_evaluator is None:
-                return None
+                return False
 
             # Calculate and log valid loss/scores
             loss, metrics = self.valid_evaluator.evaluate(self.model)
@@ -113,6 +116,13 @@ class Trainer(Generic[Model]):
             if epoch_i == self.logger.best_epoch_i:
                 _, self.__best_state = nnx.split(self.model)
 
+            # Check early stopping
+            early_stopping_flag = (self.early_stopping_patience > 0) and (
+                (epoch_i - self.logger.best_epoch_i) >= self.early_stopping_patience
+            )
+
+            return early_stopping_flag
+
         # Initialize logger
         self.logger = Logger(active_run=self.active_run)
 
@@ -123,7 +133,7 @@ class Trainer(Generic[Model]):
         self.__best_state: nnx.graph.GraphState | None = None
 
         # Validation
-        valid(epoch_i=0)
+        valid_and_check_early_stopping(epoch_i=0)
 
         # Iterate training {epoch_num} times
         for epoch_i in range(1, self.epoch_num + 1):
@@ -131,15 +141,8 @@ class Trainer(Generic[Model]):
             epoch_loss = step_epoch(epoch_i)
             self.logger.log_train_loss(epoch_loss, epoch_i)
 
-            # Validation
-            valid(epoch_i)
-
-            # Check early stopping
-            if (
-                (self.valid_evaluator is not None)
-                and (self.early_stopping_patience > 0)
-                and (epoch_i - self.logger.best_epoch_i) >= self.early_stopping_patience
-            ):
+            # Validation and Check early stopping
+            if valid_and_check_early_stopping(epoch_i):
                 break
 
         return self
