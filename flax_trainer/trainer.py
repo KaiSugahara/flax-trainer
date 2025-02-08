@@ -18,6 +18,9 @@ Model = TypeVar("Model", bound=nnx.Module)
 class NotFittedError(Exception): ...
 
 
+class NotSetEvaluatorError(Exception): ...
+
+
 @dataclass
 class Trainer(Generic[Model]):
     """Trainer for Flax model
@@ -31,6 +34,7 @@ class Trainer(Generic[Model]):
         early_stopping_patience (int): (Optional) Number of epochs with no improvement after which training will be stopped. Defaults to 0.
         epoch_num (int): (Optional) Number of training iterations. Defaults to 16.
         active_run (ActiveRun): (Optional) MLFlow's run state.
+        save_best_state (bool): (Optional) Whether or not to save the best model state. Defaults to False.
     """
 
     model: Model
@@ -41,6 +45,7 @@ class Trainer(Generic[Model]):
     early_stopping_patience: int = 0
     epoch_num: int = 16
     active_run: ActiveRun | None = None
+    save_best_state: bool = False
 
     def fit(self) -> Self:
         """Trains the model on training data"""
@@ -146,12 +151,15 @@ class Trainer(Generic[Model]):
                 break
 
         # Save best model's state
-        self.logger.log_best_state_dict(self.best_state_dict)
+        if (self.valid_evaluator is not None) and self.save_best_state:
+            self.logger.log_best_state_dict(self.best_state_dict)
 
         return self
 
     @property
     def best_model(self) -> Model:
+        if self.valid_evaluator is None:
+            raise NotSetEvaluatorError()
         best_state = getattr(self, "_Trainer__best_state", None)
         if best_state is None:
             raise NotFittedError()
@@ -160,6 +168,8 @@ class Trainer(Generic[Model]):
 
     @property
     def best_state_dict(self) -> dict:
+        if self.valid_evaluator is None:
+            raise NotSetEvaluatorError()
         best_state = getattr(self, "_Trainer__best_state", None)
         if best_state is None:
             raise NotFittedError()
