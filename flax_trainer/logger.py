@@ -6,6 +6,9 @@ from dataclasses import dataclass
 import mlflow
 import numpy as np
 from mlflow import ActiveRun
+from mlflow.config import enable_async_logging
+
+enable_async_logging()
 
 
 @dataclass
@@ -55,8 +58,7 @@ class Logger:
         """
 
         if isinstance(self.active_run, ActiveRun):
-            for key, value in metrics.items():
-                mlflow.log_metric(f"valid_{key}", value, step=epoch_i)
+            mlflow.log_metrics({f"valid_{key}": value for key, value in metrics.items()}, step=epoch_i)
 
     def log_best_state_dict(self, best_state_dict: dict) -> None:
         """Logs the best model state dict
