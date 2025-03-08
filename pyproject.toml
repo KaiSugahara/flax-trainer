@@ -1,6 +1,6 @@
 [project]
 name = "flax-trainer"
-version = "1.4.0"
+version = "1.4.1"
 description = ""
 authors = [
     {name = "Kai Sugahara",email = "contact@kais.jp"}
