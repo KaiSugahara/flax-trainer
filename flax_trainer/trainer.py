@@ -87,7 +87,8 @@ class Trainer(Generic[Model]):
             batch_loss_buff: list[jax.Array] = []
 
             # Train for every batch defined by loader
-            pbar = tqdm(iter(self.train_loader))
+            self.train_loader.setup_epoch()
+            pbar = tqdm(self.train_loader)
             pbar.set_description(f"[TRAIN {str(epoch_i).zfill(3)}]")
             for Xs, y in pbar:
                 batch_loss = step_batch(self.model, self.opt_state, Xs, y)

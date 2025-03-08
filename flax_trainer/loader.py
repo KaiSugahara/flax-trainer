@@ -7,8 +7,13 @@ from flax import nnx
 
 
 class BaseLoader:
+    def setup_epoch(self) -> Self:
+        """Data preparation before the start of every epoch"""
+
+        raise NotImplementedError
+
     def __iter__(self) -> Self:
-        """Prepares for batch iteration"""
+        """Initialize iteration"""
 
         raise NotImplementedError
 
@@ -43,8 +48,8 @@ class MiniBatchLoader(BaseLoader):
         self.batch_size = batch_size
         self.rngs = rngs
 
-    def __iter__(self) -> Self:
-        """Prepares for batch iteration"""
+    def setup_epoch(self) -> Self:
+        """Data preparation before the start of every epoch"""
 
         # Num. of data
         self.data_size = self.dataset_df.height
@@ -58,6 +63,11 @@ class MiniBatchLoader(BaseLoader):
             jax.device_put(self.dataset_df[:, :-1].to_numpy())[self.shuffled_indices],
             jax.device_put(self.dataset_df[:, -1:].to_numpy())[self.shuffled_indices],
         )
+
+        return self
+
+    def __iter__(self) -> Self:
+        """Initialize iteration"""
 
         # Initialize batch index
         self.batch_index = 0
